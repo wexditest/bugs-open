@@ -6,7 +6,7 @@ from datetime import date
 import datetime
 from datetime import datetime
 from django.contrib.auth.models import User
-
+from report.models import *
 
 
 # Create your models here.
@@ -109,7 +109,7 @@ class Bug(models.Model):
     priority = models.CharField(max_length=10, blank=True, null=True, choices=PRIORITY)
     end_date = models.DateField(default=datetime.date.today)
     bug_level = models.CharField(max_length=10, blank=True, null=True, choices=LEVELSTATUS)
-    comment= models.CharField(max_length=100 ,blank=True, null=True)
+    comment= models.CharField(max_length=500 ,blank=True, null=True)
 
 RESULT = (
         ('Pass', 'Pass'),
@@ -117,6 +117,47 @@ RESULT = (
         ('Retested', 'Retested'),
         ('NotRetested', 'NotRetested'),
     )
+
+
+
+class BugEffort(models.Model):
+    effort_date = models.DateField(default=datetime.date.today)
+    bug_obj = models.ForeignKey(Bug,verbose_name = 'Bug_id',default='', blank=True, null=True, on_delete=models.CASCADE)
+    assgined_to = models.ForeignKey(User,verbose_name = 'User Name',default='', blank=True, null=True, on_delete=models.CASCADE)
+    spend_hr= models.CharField(max_length=100 ,blank=True, null=True)
+    comment= models.CharField(max_length=100 ,blank=True, null=True)
+
+    def __str__(self):
+        return '{}'.format(self.bug_obj)
+
+    def save(self, *args, **kwargs):
+
+        super(BugEffort, self).save(*args, **kwargs)
+        try:
+            # Update when us_bug and effort date match
+            wsr_obj = WeeklyStatusReport.object.get(us_bug_id=self.bug_obj.board_id, effort_date=self.effort_date)
+            wsr_obj.us_bug_details=self.bug_obj.bug_title
+            wsr_obj.assgined_to=self.assgined_to
+            wsr_obj.efforts=self.spend_hr
+            wsr_obj.save()
+        except:
+            # create new record us_bug and effort date match doesn't exit
+            wsr_obj = WeeklyStatusReport(us_bug_id=self.bug_obj.board_id,
+                                         us_bug_details=self.bug_obj.bug_title,
+                                         assgined_to=self.assgined_to,
+                                         efforts=self.spend_hr,
+                                         effort_date=self.effort_date)
+            wsr_obj.save()
+
+
+
+# class WeeklyStatusReport(models.Model):
+#     us_bug_id = models.CharField(max_length=80,blank=True, null=True)
+#     us_bug_details = models.CharField(max_length=800,blank=True, null=True)
+#     assgined_to = models.ForeignKey(User,verbose_name = 'User Name',default='', blank=True, null=True, on_delete=models.CASCADE)
+#     efforts = models.CharField(max_length=80,blank=True, null=True)
+#     effort_date = models.DateField(default=datetime.date.today)
+
 
 
 class TestCaseSteps(models.Model):
