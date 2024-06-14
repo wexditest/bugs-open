@@ -15,6 +15,6 @@ from rangefilter.filters import (
 # Register your models here.
 class WeeklyStatusReportAdmin(ExportActionMixin, admin.ModelAdmin):
   list_display = ("us_bug_id","us_bug_details","assgined_to",'efforts','effort_date')
-  list_filter = ("assgined_to","effort_date",("effort_date", DateRangeFilterBuilder()))
+  list_filter = ("assgined_to",("effort_date", DateRangeFilterBuilder()))
 
 admin.site.register(WeeklyStatusReport, WeeklyStatusReportAdmin)

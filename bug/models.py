@@ -91,6 +91,22 @@ LEVELSTATUS = (
     )
 
 
+Score = (
+        ('0', '--'),
+        ('1', '15min'),
+        ('2', '1hr'),
+        ('3', '2hr'),
+        ('4', '4hr'),
+        ('5', '1day'),
+        ('9', '16hr'),
+        ('13', '24hr'),
+        ('15', '32hr'),
+        ('21', '1week'),
+
+
+    )
+
+
 
 
 
@@ -109,7 +125,8 @@ class Bug(models.Model):
     priority = models.CharField(max_length=10, blank=True, null=True, choices=PRIORITY)
     end_date = models.DateField(default=datetime.date.today)
     bug_level = models.CharField(max_length=10, blank=True, null=True, choices=LEVELSTATUS)
-    comment= models.CharField(max_length=500 ,blank=True, null=True)
+    comment= models.CharField(max_length=500 ,blank=True, null=True, default="NA")
+    bug_score = models.CharField(max_length=10, blank=True, null=True, choices=Score)
 
 RESULT = (
         ('Pass', 'Pass'),
@@ -118,13 +135,39 @@ RESULT = (
         ('NotRetested', 'NotRetested'),
     )
 
+Percentage = (
+        ('10%', '10%'),
+        ('20%', '20%'),
+        ('30%', '30%'),
+        ('40%', '40%'),
+        ('50%', '50%'),
+        ('60%', '60%'),
+        ('70%', '70%'),
+        ('80%', '80%'),
+        ('90%', '90%'),
+        ('100%', '100%'),
 
+    )
+WorkHr = (
+        ('1', '1'),
+        ('2', '2'),
+        ('3', '3'),
+        ('4', '4'),
+        ('5', '5'),
+        ('6', '6'),
+        ('7', '7'),
+        ('8', '8'),
+
+
+    )
 
 class BugEffort(models.Model):
     effort_date = models.DateField(default=datetime.date.today)
     bug_obj = models.ForeignKey(Bug,verbose_name = 'Bug_id',default='', blank=True, null=True, on_delete=models.CASCADE)
     assgined_to = models.ForeignKey(User,verbose_name = 'User Name',default='', blank=True, null=True, on_delete=models.CASCADE)
-    spend_hr= models.CharField(max_length=100 ,blank=True, null=True)
+    spend_hr= models.CharField(max_length=100 ,blank=True, null=True, choices=WorkHr)
+    effor_status = models.CharField(max_length=100, blank=True, null=True, choices=STATUS, verbose_name = 'Effort Status')
+    percentage_completed = models.CharField(max_length=100, blank=True, null=True, choices=Percentage)
     comment= models.CharField(max_length=100 ,blank=True, null=True)
 
     def __str__(self):
@@ -139,24 +182,19 @@ class BugEffort(models.Model):
             wsr_obj.us_bug_details=self.bug_obj.bug_title
             wsr_obj.assgined_to=self.assgined_to
             wsr_obj.efforts=self.spend_hr
+            wsr_obj.efforts_status = self.effor_status
+            wsr_obj.percentage_complete=self.percentage_completed
             wsr_obj.save()
         except:
             # create new record us_bug and effort date match doesn't exit
             wsr_obj = WeeklyStatusReport(us_bug_id=self.bug_obj.board_id,
                                          us_bug_details=self.bug_obj.bug_title,
                                          assgined_to=self.assgined_to,
-                                         efforts=self.spend_hr,
+                                         efforts=self.spend_hr,efforts_status=self.effor_status,
+                                         percentage_complete=self.percentage_completed,
+
                                          effort_date=self.effort_date)
             wsr_obj.save()
-
-
-
-# class WeeklyStatusReport(models.Model):
-#     us_bug_id = models.CharField(max_length=80,blank=True, null=True)
-#     us_bug_details = models.CharField(max_length=800,blank=True, null=True)
-#     assgined_to = models.ForeignKey(User,verbose_name = 'User Name',default='', blank=True, null=True, on_delete=models.CASCADE)
-#     efforts = models.CharField(max_length=80,blank=True, null=True)
-#     effort_date = models.DateField(default=datetime.date.today)
 
 
 
